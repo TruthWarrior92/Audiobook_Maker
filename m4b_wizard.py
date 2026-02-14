@@ -167,6 +167,7 @@ class PublishWorker(QThread):
         chapter_titles: list[str],
         metadata: dict,
         out_path: Path,
+        combined_m4a_path: Path | None = None,
     ):
         super().__init__()
         self.file_paths = file_paths
@@ -175,21 +176,25 @@ class PublishWorker(QThread):
         self.chapter_titles = chapter_titles
         self.metadata = metadata
         self.out_path = out_path
+        self.combined_m4a_path = combined_m4a_path
         self._temp_dir = None
 
     def run(self):
         try:
             self._temp_dir = tempfile.TemporaryDirectory()
             tmp = Path(self._temp_dir.name)
-            out_m4a = tmp / "combined.m4a"
-            out_wav = tmp / "combined.wav"
             meta_path = tmp / "chapters.txt"
 
-            self.progress.emit("Concatenating audio...")
-            if not concat_mp3s_from_list(self.file_paths, out_m4a, out_wav):
-                self.error.emit("FFmpeg concat failed")
-                self.finished.emit(False)
-                return
+            if self.combined_m4a_path is not None and self.combined_m4a_path.exists():
+                out_m4a = self.combined_m4a_path
+            else:
+                out_m4a = tmp / "combined.m4a"
+                out_wav = tmp / "combined.wav"
+                self.progress.emit("Concatenating audio...")
+                if not concat_mp3s_from_list(self.file_paths, out_m4a, out_wav):
+                    self.error.emit("FFmpeg concat failed")
+                    self.finished.emit(False)
+                    return
 
             self.progress.emit("Writing chapters and metadata...")
             meta = dict(self.metadata)
@@ -663,6 +668,7 @@ class Step5Publish(QWidget):
             list(self.state.chapter_titles),
             dict(self.state.metadata),
             path,
+            combined_m4a_path=self.state.combined_m4a_path if self.state.combined_m4a_path and self.state.combined_m4a_path.exists() else None,
         )
         self._worker.progress.connect(self.progress_label.setText)
         self._worker.finished.connect(self._publish_finished)

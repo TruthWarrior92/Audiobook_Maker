@@ -24,6 +24,8 @@ python m4b_wizard.py
 
 **Wizard steps:** 1) Add MP3 files (and reorder); choose "One chapter per file" or "Use Whisper to find chapter breaks". 2) If Whisper: transcript appears with proposed breaks; search and add/remove breaks at segment boundaries. If one per file: break times are set from file durations. 3) Edit chapter names. 4) Set title, author, album, genre, comment. 5) Choose destination and click **Publish**.
 
+On the Whisper path, Publish reuses the concatenated audio from transcription, avoiding a second concat for faster publish.
+
 ## CLI Usage
 
 ```bash
