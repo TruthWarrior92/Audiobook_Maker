@@ -1,0 +1,2 @@
+# Put one folder per book here for CLI (e.g. books/MyBook/ with 001.mp3, 002.mp3, ...).
+# GUI wizard lets you pick any folder; this structure is only for combine_to_m4b.py.
